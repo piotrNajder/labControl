@@ -1,14 +1,12 @@
 import sys
 import os.path
 import shutil
-from enum import Enum
 from PyQt4 import QtGui
-from PyQt4.QtCore import pyqtSlot
-from PyQt4.QtCore import QTimer
+from PyQt4.QtCore import pyqtSlot, QTimer
 from controlerUI import Ui_MainWindow
 import time
 
-class TestState(Enum):
+class TestState():
     UNKNOWN = 0
     FILL = 1
     IN_FLUID = 2
