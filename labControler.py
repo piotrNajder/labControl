@@ -320,6 +320,9 @@ class Main(QtGui.QMainWindow, Ui_MainWindow):
 
     @pyqtSlot()
     def pBtnStop_Clicked(self):
+        ControlerIos.setPump(1, PumpState.STOP)
+        ControlerIos.setPump(2, PumpState.STOP)
+        ControlerIos.setPump(3, PumpState.STOP)
         self.btnStop.setDisabled(True)
         self.btStart.setDisabled(False)
         self._cycleTimer.stop()
