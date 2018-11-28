@@ -1,10 +1,10 @@
 import sys
 import os.path
 import shutil
-from PyQt4 import QtGui
-from PyQt4.QtCore import pyqtSlot, QTimer
-from controlerUI import Ui_MainWindow, _fromUtf8
-import Adafruit_BBIO.GPIO as GPIO
+from controlerUI import Ui_MainWindow
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import pyqtSlot, QTimer
+import stuob_Adafruit_BBIO.GPIO as GPIO
 import time
 
 class TestState():
@@ -149,11 +149,11 @@ class ControlerIos():
             pass
     
 
-class Main(QtGui.QMainWindow, Ui_MainWindow):
+class Main(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def __init__(self):
         ControlerIos.initIos()
-        QtGui.QMainWindow.__init__(self)
+        QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
         self.initControlsCallbacks()
 
@@ -216,7 +216,7 @@ class Main(QtGui.QMainWindow, Ui_MainWindow):
     @Cycle.setter
     def Cycle(self, newVal):
         self._cyclesRemainig = newVal
-        currentCycle = int(self.sBoxCycleCounter.value()) - self._cyclesRemainig + 1 
+        currentCycle = int(self.sBoxCycleCounter.value()) - self._cyclesRemainig
         self.lblActualCycle.setText("Aktualny cykl: {}".format(currentCycle))
 
     @property
@@ -240,9 +240,10 @@ class Main(QtGui.QMainWindow, Ui_MainWindow):
         self._cycleTimer.start(1000)
         self.State = TestState.FILL
         self.Cycle = int(self.sBoxCycleCounter.value())
+        self.Cycle -= 1
         self.pumpControl(PumpState.FILL)
 
-    def processStateFill(self):
+    def processStateFill(self):        
         self._cycleTimer.start(1000)
         if (self._fillTimeRemaining > 0 ):
             self._fillTimeRemaining -= 1 
@@ -284,9 +285,9 @@ class Main(QtGui.QMainWindow, Ui_MainWindow):
             ### End of test cycle
             if (self._cyclesRemainig > 0):
                 ### Stil some test to do
+                self.Cycle -= 1
                 self._cycleTimer.start(1000)
                 self.pumpControl(PumpState.FILL)
-                self.Cycle -= 1
                 self.State = TestState.FILL
                 self.Progress = 0
                 ### Start the cycle from the begining
@@ -296,7 +297,8 @@ class Main(QtGui.QMainWindow, Ui_MainWindow):
                 self._inAirTimeRemaining = 60 * int(self.sBoxInAirTime.value())
             else:
                 ### End of test
-                pass
+                self.lblActualCycle.setText("Aktualny cykl:")
+                self.pBarStateProgress.setValue(0)
                 ### TODO: write report
 
     @pyqtSlot()
@@ -347,9 +349,9 @@ class Main(QtGui.QMainWindow, Ui_MainWindow):
                 self.lblSt1Smpl2State.setStyleSheet(self.lblStyleSheet("RED"))
 
             if In3 == ControlerIos.STATE_OK:
-                self.lblSt1Smp3State.setStyleSheet(self.lblStyleSheet("GREEN"))
+                self.lblSt1Smpl3State.setStyleSheet(self.lblStyleSheet("GREEN"))
             else:
-                self.lblSt1Smp3State.setStyleSheet(self.lblStyleSheet("RED"))
+                self.lblSt1Smpl3State.setStyleSheet(self.lblStyleSheet("RED"))
 
             if (In1 == ControlerIos.STATE_NOK and
                 In2 == ControlerIos.STATE_NOK and
@@ -373,9 +375,9 @@ class Main(QtGui.QMainWindow, Ui_MainWindow):
                 self.lblSt2Smpl2State.setStyleSheet(self.lblStyleSheet("RED"))
 
             if In3 == ControlerIos.STATE_OK:
-                self.lblSt2Smp3State.setStyleSheet(self.lblStyleSheet("GREEN"))
+                self.lblSt2Smpl3State.setStyleSheet(self.lblStyleSheet("GREEN"))
             else:
-                self.lblSt2Smp3State.setStyleSheet(self.lblStyleSheet("RED"))
+                self.lblSt2Smpl3State.setStyleSheet(self.lblStyleSheet("RED"))
 
             if (In1 == ControlerIos.STATE_NOK and
                 In2 == ControlerIos.STATE_NOK and
@@ -399,9 +401,9 @@ class Main(QtGui.QMainWindow, Ui_MainWindow):
                 self.lblSt3Smpl2State.setStyleSheet(self.lblStyleSheet("RED"))
 
             if In3 == ControlerIos.STATE_OK:
-                self.lblSt3Smp3State.setStyleSheet(self.lblStyleSheet("GREEN"))
+                self.lblSt3Smpl3State.setStyleSheet(self.lblStyleSheet("GREEN"))
             else:
-                self.lblSt3Smp3State.setStyleSheet(self.lblStyleSheet("RED"))
+                self.lblSt3Smpl3State.setStyleSheet(self.lblStyleSheet("RED"))
 
             if (In1 == ControlerIos.STATE_NOK and
                 In2 == ControlerIos.STATE_NOK and
@@ -413,10 +415,10 @@ class Main(QtGui.QMainWindow, Ui_MainWindow):
     def cycleTimerTimeout(self):
         if (self._currentState == TestState.UNKNOWN):
             self.processStateUnknown()
-        elif (self._currentState == TestState.FILL):           
+        elif (self._currentState == TestState.FILL):
             self.processStateFill()
         elif (self._currentState == TestState.IN_FLUID):
-            self.processStateFill()
+            self.processStateInFluid()
         elif (self._currentState == TestState.DISCHARGE):
             self.processStateDischarge()
         elif (self._currentState == TestState.IN_AIR):
@@ -475,20 +477,20 @@ class Main(QtGui.QMainWindow, Ui_MainWindow):
 
     def lblStyleSheet(self, color):
         if color == "RED":
-            return _fromUtf8("border: 1px;\n" 
-                             "border-radius: 10px;\n"
-                             "background-color: rgb(255, 0, 0);")
+            return ("border: 1px;\n" 
+                    "border-radius: 10px;\n"
+                    "background-color: rgb(255, 0, 0);")
         elif color == "GREEN":
-            return _fromUtf8("border: 1px;\n" 
-                             "border-radius: 10px;\n"
-                             "background-color: rgb(0, 255, 0);")
+            return ("border: 1px;\n" 
+                    "border-radius: 10px;\n"
+                    "background-color: rgb(0, 255, 0);")
         else:
             raise AttributeError
 
 if __name__ == "__main__":
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     window = Main()
-    app.setStyle(QtGui.QStyleFactory.create("Windows"))
+    ##app.setStyle(QtGui.QStyleFactory.create("Windows"))
     window.show()
     sys.exit(app.exec_())
     GPIO.cleanup()
