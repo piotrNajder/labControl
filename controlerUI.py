@@ -97,7 +97,7 @@ class Ui_MainWindow(object):
         self.lblSt1Smpl3State.setText("")
         self.lblSt1Smpl3State.setObjectName("lblSt1Smpl3State")
         self.logView = QtWidgets.QTextEdit(self.centralwidget)
-        self.logView.setGeometry(QtCore.QRect(10, 10, 270, 321))
+        self.logView.setGeometry(QtCore.QRect(10, 10, 270, 301))
         self.logView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.logView.setReadOnly(True)
         self.logView.setObjectName("logView")
@@ -377,6 +377,9 @@ class Ui_MainWindow(object):
         self.pBtnStation3.setText("")
         self.pBtnStation3.setFlat(True)
         self.pBtnStation3.setObjectName("pBtnStation3")
+        self.pBtnClearLog = QtWidgets.QPushButton(self.centralwidget)
+        self.pBtnClearLog.setGeometry(QtCore.QRect(148, 320, 131, 29))
+        self.pBtnClearLog.setObjectName("pBtnClearLog")
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -395,6 +398,11 @@ class Ui_MainWindow(object):
         self.lblSt1Smpl1.setText(_translate("MainWindow", "PRÓBKA 1"))
         self.lblSt1Smpl2.setText(_translate("MainWindow", "PRÓBKA 2"))
         self.lblSt1Smpl3.setText(_translate("MainWindow", "PRÓBKA 3"))
+        self.logView.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Ubuntu\'; font-size:11pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;\"><br /></p></body></html>"))
         self.gbStation2.setTitle(_translate("MainWindow", "Stanowisko 2"))
         self.lblSt2Smpl1.setText(_translate("MainWindow", "PRÓBKA 1"))
         self.lblSt2Smpl2.setText(_translate("MainWindow", "PRÓBKA 2"))
@@ -426,4 +434,6 @@ class Ui_MainWindow(object):
         self.pBtnStation1.setShortcut(_translate("MainWindow", "F1"))
         self.pBtnStation2.setShortcut(_translate("MainWindow", "F2"))
         self.pBtnStation3.setShortcut(_translate("MainWindow", "F3"))
+        self.pBtnClearLog.setText(_translate("MainWindow", "WYCZYŚC LOG"))
+        self.pBtnClearLog.setShortcut(_translate("MainWindow", "F4"))
 

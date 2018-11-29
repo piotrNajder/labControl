@@ -5,7 +5,7 @@ from controlerUI import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot, QTimer
 import stuob_Adafruit_BBIO.GPIO as GPIO
-import time
+import datetime
 
 class TestState():
     UNKNOWN = (0, "UNKNOWN")
@@ -29,22 +29,22 @@ class AppState():
     STOPED = 1
 
 class ControlerIos():
-    st1Smpl1 = "GPIO0_1"
-    st1Smpl2 = "GPIO0_2"
-    st1Smpl3 = "GPIO0_3"
-    st2Smpl1 = "GPIO0_4"
-    st2Smpl2 = "GPIO0_5"
-    st2Smpl3 = "GPIO0_6"
-    st3Smpl1 = "GPIO0_7"
-    st3Smpl2 = "GPIO0_8"
-    st3Smpl3 = "GPIO0_9"
+    st1Smpl1 = "P8_7"
+    st1Smpl2 = "P8_8"
+    st1Smpl3 = "P8_10"
+    st2Smpl1 = "P8_9"
+    st2Smpl2 = "P8_12"
+    st2Smpl3 = "P8_11"
+    st3Smpl1 = "P8_14"
+    st3Smpl2 = "P8_16"
+    st3Smpl3 = "P8_15"
 
-    st1PumpStart = "GPIO0_10"
-    st1PumpDir = "GPIO0_11"
-    st2PumpStart = "GPIO0_12"
-    st2PumpDir = "GPIO0_13"
-    st3PumpStart = "GPIO0_14"
-    st3PumpDir = "GPIO0_15"
+    st1PumpStart = "P9_15"
+    st1PumpDir = "P9_12"
+    st2PumpStart = "P9_23"
+    st2PumpDir = "P9_25"
+    st3PumpStart = "P9_27"
+    st3PumpDir = "P9_30"
 
     STATE_OK = True
     STATE_NOK = False
@@ -157,6 +157,7 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.initControlsCallbacks()
 
+        self._reportFileName = ""
         self._currentState = TestState.UNKNOWN
         self._cyclesRemainig = 0
         self._progressValue = 0
@@ -171,8 +172,10 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self._appState = AppState.STOPED
 
-        self.initTimers()
+        self._demagedSamples = list()
+        self._StationsInUse = list()
 
+        self.initTimers()
 
     def initTimers(self):
         self._ioPollTimer = QTimer(self)
@@ -199,6 +202,7 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pBtnInAir.clicked.connect(lambda: self.pBtnInAirClicked())
         self.pBtnCycleCounter.clicked.connect(lambda: self.pBtnCycleCounterClicked())
         self.btnEnd.clicked.connect(lambda: self.btnEndClicked())
+        self.pBtnClearLog.clicked.connect(lambda: self.pBtnClearLogClicked())
 
     @property
     def State(self):
@@ -229,11 +233,11 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pBarStateProgress.setValue(self._progressValue)
 
     def pumpControl(self, pumpState):        
-        if self.gbStation1.isChecked():
+        if ("St1" in self._StationsInUse):
             ControlerIos.setPump(1, pumpState)
-        if self.gbStation2.isChecked():
+        if ("St2" in self._StationsInUse):
             ControlerIos.setPump(2, pumpState)
-        if self.gbStation3.isChecked():
+        if ("St3" in self._StationsInUse):
             ControlerIos.setPump(3, pumpState)
 
     def processStateUnknown(self):
@@ -301,23 +305,74 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.pBarStateProgress.setValue(0)
                 ### TODO: write report
 
-    @pyqtSlot()
-    def tBtnFileSelect_Clicked(self):       
-        options = QtWidgets.QFileDialog.Options() 
-        options |= QtWidgets.QFileDialog.DontUseNativeDialog
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Choose an image file...", "", "Image Files (*.jpg *.jpeg *.png)")
+    def writeLog(self, lvl, msg):
+        cursor = self.logView.textCursor()
 
-        self.lEditFileName.setText(fileName)
+        alertHtml = "<font color=\"DeepPink\">"
+        notifyHtml = "<font color=\"Lime\">"
+        infoHtml = "<font color=\"Aqua\">"
+        endHtml = "</font><br>"
+        line = ""
+        timeStr = datetime.datetime.now().strftime("[%y.%m.%d - %H:%M:%S] ")
+        if lvl == "Alert":
+            line = alertHtml + timeStr + msg
+        elif lvl == "Notify":
+            line = notifyHtml + timeStr + msg
+        else:
+            line = infoHtml + timeStr + msg
+
+        line += endHtml
+        self.logView.insertHtml(line)
+        cursor.movePosition(11) # 11 = QTextCursor::END
+        self.logView.setTextCursor(cursor)
+
+    def writeReport(self, msg):
+        with open(self._reportFileName, "a") as repF:
+            l = datetime.datetime.now().strftime("[%y.%m.%d - %H:%M:%S] ") + msg + "\n"
+            repF.write(l)
+
+    @pyqtSlot()
+    def tBtnFileSelect_Clicked(self):
+        dialog = QtWidgets.QFileDialog(self)
+        dialog.setFileMode(QtWidgets.QFileDialog.Directory)
+        dialog.setOption(QtWidgets.QFileDialog.ShowDirsOnly, True)
+        dialog.setDirectory("/home/piotr/pendrive/")
+
+        if dialog.exec_():
+            d = dialog.selectedFiles()
+            if len(d) > 0:
+                self.lEditFileName.setText(d[0])
 
     @pyqtSlot()
     def pBtnRun_Clicked(self):
         self.btnStop.setDisabled(False)
         self.btStart.setDisabled(True)
+        if self.gbStation1.isChecked(): self._StationsInUse.append("St1")
+        if self.gbStation2.isChecked(): self._StationsInUse.append("St2")
+        if self.gbStation3.isChecked(): self._StationsInUse.append("St3")
+        self.gbStation1.setDisabled(True)
+        self.gbStation2.setDisabled(True)
+        self.gbStation3.setDisabled(True)
         self._cyclesRemainig = int(self.sBoxCycleCounter.value())
         self._fillTimeRemaining = int(self.sBoxFillTime.value())
         self._inFluidTimeRemaing = 60 * int(self.sBoxInFluidTime.value())
         self._dischargeTimeRemaining = int(self.sBoxDischargeTime.value())
         self._inAirTimeRemaining = 60 * int(self.sBoxInAirTime.value())
+        fPath = self.lEditFileName.text()
+        if fPath == "":
+            self.tBtnFileSelect_Clicked()
+            fPath = self.lEditFileName.text()
+        self._reportFileName = fPath + datetime.datetime.now().strftime("/%y_%m_%d_%H_%M.txt")
+        self.writeReport("ROZPOCZETO TEST\n"
+                         "ILOSC CYKLI = {}\n"
+                         "CZAS NALEWANIA = {} s\n"
+                         "CZAS W CIECZY = {} m\n"
+                         "CZAS WYLEWANIA = {} s\n"
+                         "CZAS W POWIETRZU = {} m\n".format(self._cyclesRemainig,
+                                                            self._fillTimeRemaining,
+                                                            self._inFluidTimeRemaing,
+                                                            self._dischargeTimeRemaining,
+                                                            self._inAirTimeRemaining))
         self._cycleTimer.start(0) # Kick the timer and let him take control
 
     @pyqtSlot()
@@ -327,8 +382,15 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
         ControlerIos.setPump(3, PumpState.STOP)
         self.btnStop.setDisabled(True)
         self.btStart.setDisabled(False)
+        self.gbStation1.setEnabled(True)
+        self.gbStation2.setEnabled(True)
+        self.gbStation3.setEnabled(True)
         self._cycleTimer.stop()
         self._currentState = TestState.UNKNOWN
+
+    @pyqtSlot()
+    def pBtnClearLogClicked(self):
+        self.logView.clear()
 
     @pyqtSlot()
     def closeEvent(self, evnt):
@@ -343,17 +405,32 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
 
             if In1 == ControlerIos.STATE_OK:
                 self.lblSt1Smpl1State.setStyleSheet(self.lblStyleSheet("GREEN"))
+                if ControlerIos.st1Smpl1 in self._demagedSamples:
+                    self._demagedSamples.remove(ControlerIos.st1Smpl1)
             else:
+                if ControlerIos.st1Smpl1 not in self._demagedSamples:
+                    self._demagedSamples.append(ControlerIos.st1Smpl1)
+                    self.writeLog("Alert", "St.1 Probka 1 zerwana")
                 self.lblSt1Smpl1State.setStyleSheet(self.lblStyleSheet("RED"))
 
             if In2 == ControlerIos.STATE_OK:
                 self.lblSt1Smpl2State.setStyleSheet(self.lblStyleSheet("GREEN"))
+                if ControlerIos.st1Smpl2 in self._demagedSamples:
+                    self._demagedSamples.remove(ControlerIos.st1Smpl2)
             else:
+                if ControlerIos.st1Smpl2 not in self._demagedSamples:
+                    self._demagedSamples.append(ControlerIos.st1Smpl2)
+                    self.writeLog("Alert", "St.1 Probka 2 zerwana")
                 self.lblSt1Smpl2State.setStyleSheet(self.lblStyleSheet("RED"))
 
             if In3 == ControlerIos.STATE_OK:
                 self.lblSt1Smpl3State.setStyleSheet(self.lblStyleSheet("GREEN"))
+                if ControlerIos.st1Smpl3 in self._demagedSamples:
+                    self._demagedSamples.remove(ControlerIos.st1Smpl3)
             else:
+                if ControlerIos.st1Smpl3 not in self._demagedSamples:
+                    self._demagedSamples.append(ControlerIos.st1Smpl3)
+                    self.writeLog("Alert", "St.1 Probka 3 zerwana")
                 self.lblSt1Smpl3State.setStyleSheet(self.lblStyleSheet("RED"))
 
             if (In1 == ControlerIos.STATE_NOK and
@@ -368,18 +445,33 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
             In3 = ControlerIos.sampleState(2,3)
 
             if In1 == ControlerIos.STATE_OK:
+                if ControlerIos.st2Smpl1 in self._demagedSamples:
+                    self._demagedSamples.remove(ControlerIos.st2Smpl1)
                 self.lblSt2Smpl1State.setStyleSheet(self.lblStyleSheet("GREEN"))
             else:
+                if ControlerIos.st2Smpl1 not in self._demagedSamples:
+                    self._demagedSamples.append(ControlerIos.st2Smpl1)
+                    self.writeLog("Alert", "St.2 Probka 1 zerwana")
                 self.lblSt2Smpl1State.setStyleSheet(self.lblStyleSheet("RED"))
 
             if In2 == ControlerIos.STATE_OK:
+                if ControlerIos.st2Smpl2 in self._demagedSamples:
+                    self._demagedSamples.remove(ControlerIos.st2Smpl2)
                 self.lblSt2Smpl2State.setStyleSheet(self.lblStyleSheet("GREEN"))
             else:
+                if ControlerIos.st2Smpl2 not in self._demagedSamples:
+                    self._demagedSamples.append(ControlerIos.st2Smpl2)
+                    self.writeLog("Alert", "St.2 Probka 2 zerwana")
                 self.lblSt2Smpl2State.setStyleSheet(self.lblStyleSheet("RED"))
 
             if In3 == ControlerIos.STATE_OK:
+                if ControlerIos.st2Smpl3 in self._demagedSamples:
+                    self._demagedSamples.remove(ControlerIos.st2Smpl3)
                 self.lblSt2Smpl3State.setStyleSheet(self.lblStyleSheet("GREEN"))
             else:
+                if ControlerIos.st2Smpl3 not in self._demagedSamples:
+                    self._demagedSamples.append(ControlerIos.st2Smpl3)
+                    self.writeLog("Alert", "St.2 Probka 3 zerwana")
                 self.lblSt2Smpl3State.setStyleSheet(self.lblStyleSheet("RED"))
 
             if (In1 == ControlerIos.STATE_NOK and
@@ -394,18 +486,33 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
             In3 = ControlerIos.sampleState(3,3)
 
             if In1 == ControlerIos.STATE_OK:
+                if ControlerIos.st3Smpl1 in self._demagedSamples:
+                    self._demagedSamples.remove(ControlerIos.st3Smpl1)
                 self.lblSt3Smpl1State.setStyleSheet(self.lblStyleSheet("GREEN"))
             else:
+                if ControlerIos.st3Smpl1 not in self._demagedSamples:
+                    self._demagedSamples.append(ControlerIos.st3Smpl1)
+                    self.writeLog("Alert", "St.3 Probka 1 zerwana")
                 self.lblSt3Smpl1State.setStyleSheet(self.lblStyleSheet("RED"))
 
             if In2 == ControlerIos.STATE_OK:
+                if ControlerIos.st3Smpl2 in self._demagedSamples:
+                    self._demagedSamples.remove(ControlerIos.st3Smpl2)
                 self.lblSt3Smpl2State.setStyleSheet(self.lblStyleSheet("GREEN"))
             else:
+                if ControlerIos.st3Smpl2 not in self._demagedSamples:
+                    self._demagedSamples.append(ControlerIos.st3Smpl2)
+                    self.writeLog("Alert", "St.3 Probka 2 zerwana")
                 self.lblSt3Smpl2State.setStyleSheet(self.lblStyleSheet("RED"))
 
             if In3 == ControlerIos.STATE_OK:
+                if ControlerIos.st3Smpl3 in self._demagedSamples:
+                    self._demagedSamples.remove(ControlerIos.st3Smpl3)
                 self.lblSt3Smpl3State.setStyleSheet(self.lblStyleSheet("GREEN"))
             else:
+                if ControlerIos.st3Smpl3 not in self._demagedSamples:
+                    self._demagedSamples.append(ControlerIos.st3Smpl3)
+                    self.writeLog("Alert", "St.3 Probka 3 zerwana")
                 self.lblSt3Smpl3State.setStyleSheet(self.lblStyleSheet("RED"))
 
             if (In1 == ControlerIos.STATE_NOK and
