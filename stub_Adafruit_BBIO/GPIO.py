@@ -17,9 +17,10 @@ def output(ioName, state):
 def input(ioName):    
     io = next((x for x in inputsList if x["inNum"] == ioName), None)
     if io == None:
-        inputsList.append({"inNum": ioName, "state": 1})
+        io = {"inNum": ioName, "state": 1}
+        inputsList.append(io)
     if io["state"] == 1:
-        if(random.randint(0, 5001) < 2):
+        if(random.randint(0, 50001) < 2):
             io["state"] = 0
             return False
         else:

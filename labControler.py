@@ -1,316 +1,140 @@
 import sys
-import os.path
-import shutil
+from enum import Enum
 from controlerUI import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import pyqtSlot, QTimer
-import stuob_Adafruit_BBIO.GPIO as GPIO
+from PyQt5.QtCore import pyqtSlot, QTimer, QObject
+from test_station_controler.stationControler import stationControler as stCtrl
+from test_station_controler.stationControler import PumpState as pS
+from stub_Adafruit_BBIO import GPIO
 import datetime
-
-class TestState():
-    UNKNOWN = (0, "UNKNOWN")
-    FILL = (1, "NALEWANIE")
-    IN_FLUID = (2, "W CIECZY")
-    DISCHARGE = (3, "WYLEWANIE")
-    IN_AIR = (4, "W POWIETRZU")
-
-class PumpState():
-    FILL = 0
-    DISCHARGE = 1
-    STOP = 2
-
-class StationState():
-    USE = 0
-    NOT_USE = 1
-    ALL_DOWN = 2
-
-class AppState():
-    RUNNING = 0
-    STOPED = 1
-
-class ControlerIos():
-    st1Smpl1 = "P8_7"
-    st1Smpl2 = "P8_8"
-    st1Smpl3 = "P8_10"
-    st2Smpl1 = "P8_9"
-    st2Smpl2 = "P8_12"
-    st2Smpl3 = "P8_11"
-    st3Smpl1 = "P8_14"
-    st3Smpl2 = "P8_16"
-    st3Smpl3 = "P8_15"
-
-    st1PumpStart = "P9_15"
-    st1PumpDir = "P9_12"
-    st2PumpStart = "P9_23"
-    st2PumpDir = "P9_25"
-    st3PumpStart = "P9_27"
-    st3PumpDir = "P9_30"
-
-    STATE_OK = True
-    STATE_NOK = False
-
-    @staticmethod
-    def initIos():
-        GPIO.setup(ControlerIos.st1Smpl1, GPIO.IN)
-        GPIO.setup(ControlerIos.st1Smpl2, GPIO.IN)
-        GPIO.setup(ControlerIos.st1Smpl3, GPIO.IN)
-        GPIO.setup(ControlerIos.st2Smpl1, GPIO.IN)
-        GPIO.setup(ControlerIos.st2Smpl2, GPIO.IN)
-        GPIO.setup(ControlerIos.st2Smpl3, GPIO.IN)
-        GPIO.setup(ControlerIos.st3Smpl1, GPIO.IN)
-        GPIO.setup(ControlerIos.st3Smpl2, GPIO.IN)
-        GPIO.setup(ControlerIos.st3Smpl3, GPIO.IN)
-
-        GPIO.setup(ControlerIos.st1PumpStart, GPIO.OUT)
-        GPIO.setup(ControlerIos.st1PumpDir, GPIO.OUT)
-        GPIO.setup(ControlerIos.st2PumpStart, GPIO.OUT)
-        GPIO.setup(ControlerIos.st2PumpDir, GPIO.OUT)
-        GPIO.setup(ControlerIos.st3PumpStart, GPIO.OUT)
-        GPIO.setup(ControlerIos.st3PumpDir, GPIO.OUT)
-
-        GPIO.output(ControlerIos.st1PumpStart, GPIO.LOW)
-        GPIO.output(ControlerIos.st1PumpDir, GPIO.LOW)
-        GPIO.output(ControlerIos.st2PumpStart, GPIO.LOW)
-        GPIO.output(ControlerIos.st2PumpDir, GPIO.LOW)
-        GPIO.output(ControlerIos.st3PumpStart, GPIO.LOW)
-        GPIO.output(ControlerIos.st3PumpDir, GPIO.LOW)
-
-    @staticmethod
-    def sampleState(station, sample):
-        if station == 1:
-            if sample == 1:
-                return GPIO.input(ControlerIos.st1Smpl1)
-            elif sample == 2:
-                return GPIO.input(ControlerIos.st1Smpl2)
-            elif sample == 3:
-                return GPIO.input(ControlerIos.st1Smpl3)
-            else:
-                pass 
-        elif station == 2:
-            if sample == 1:
-                return GPIO.input(ControlerIos.st2Smpl1)
-            elif sample == 2:
-                return GPIO.input(ControlerIos.st2Smpl2)
-            elif sample == 3:
-                return GPIO.input(ControlerIos.st2Smpl3)
-            else:
-                pass 
-        elif station == 3:
-            if sample == 1:
-                return GPIO.input(ControlerIos.st3Smpl1)
-            elif sample == 2:
-                return GPIO.input(ControlerIos.st3Smpl2)
-            elif sample == 3:
-                return GPIO.input(ControlerIos.st3Smpl3)
-            else:
-                pass 
-        else:
-            pass
-
-    @staticmethod
-    def setPump(station, state):
-        if station == 1:
-            if state == PumpState.STOP:
-                GPIO.output(ControlerIos.st1PumpStart, GPIO.LOW)
-                GPIO.output(ControlerIos.st1PumpDir, GPIO.LOW)
-            elif state == PumpState.FILL:
-                GPIO.output(ControlerIos.st1PumpDir, GPIO.HIGH)
-                GPIO.output(ControlerIos.st1PumpStart, GPIO.HIGH)
-            elif state == PumpState.DISCHARGE:
-                GPIO.output(ControlerIos.st1PumpDir, GPIO.LOW)
-                GPIO.output(ControlerIos.st1PumpStart, GPIO.HIGH)
-            else:
-                pass
-        elif station == 2:
-            if state == PumpState.STOP:
-                GPIO.output(ControlerIos.st2PumpStart, GPIO.LOW)
-                GPIO.output(ControlerIos.st2PumpDir, GPIO.LOW)
-            elif state == PumpState.FILL:
-                GPIO.output(ControlerIos.st2PumpDir, GPIO.HIGH)
-                GPIO.output(ControlerIos.st2PumpStart, GPIO.HIGH)
-            elif state == PumpState.DISCHARGE:
-                GPIO.output(ControlerIos.st2PumpDir, GPIO.LOW)
-                GPIO.output(ControlerIos.st2PumpStart, GPIO.HIGH)
-            else:
-                pass
-        elif station == 3:
-            if state == PumpState.STOP:
-                GPIO.output(ControlerIos.st3PumpStart, GPIO.LOW)
-                GPIO.output(ControlerIos.st3PumpDir, GPIO.LOW)
-            elif state == PumpState.FILL:
-                GPIO.output(ControlerIos.st3PumpDir, GPIO.HIGH)
-                GPIO.output(ControlerIos.st3PumpStart, GPIO.HIGH)
-            elif state == PumpState.DISCHARGE:
-                GPIO.output(ControlerIos.st3PumpDir, GPIO.LOW)
-                GPIO.output(ControlerIos.st3PumpStart, GPIO.HIGH)
-            else:
-                pass
-        else:
-            pass
-    
+import time
 
 class Main(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def __init__(self):
-        ControlerIos.initIos()
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
         self.initControlsCallbacks()
 
-        self._reportFileName = ""
-        self._currentState = TestState.UNKNOWN
-        self._cyclesRemainig = 0
-        self._progressValue = 0
-        self._fillTimeRemaining = 0
-        self._inFluidTimeRemaing = 0
-        self._dischargeTimeRemaining = 0
-        self._inAirTimeRemaining = 0
+        self.st1 = stCtrl(self, 1)
+        self.st2 = stCtrl(self, 2)
+        self.st3 = stCtrl(self, 3)
 
-        self._st1State = StationState.NOT_USE
-        self._st2State = StationState.NOT_USE
-        self._st3State = StationState.NOT_USE
+        self.setStationsGuiControls()
+        self.setStationsWriteMethods()
+        self.setStationsIos()
+        self.setStationsTimersCallbacks()
 
-        self._appState = AppState.STOPED
+    def setStationsGuiControls(self):
+        self.st1.StateLabel = self.lblActCyc_St1
+        self.st2.StateLabel = self.lblActCyc_St2
+        self.st3.StateLabel = self.lblActCyc_St3
+        
+        self.st1.PhaseLabel = self.lblActPhase_St1
+        self.st2.PhaseLabel = self.lblActPhase_St2
+        self.st3.PhaseLabel = self.lblActPhase_St3
 
-        self._demagedSamples = list()
-        self._StationsInUse = list()
+        self.st1.ProgressBar = self.pBarPhasePrgs_St1
+        self.st2.ProgressBar = self.pBarPhasePrgs_St2
+        self.st3.ProgressBar = self.pBarPhasePrgs_St3
 
-        self.initTimers()
+        self.st1.In1StatusLabel = self.lblSt1Smpl1State
+        self.st1.In2StatusLabel = self.lblSt1Smpl2State
+        self.st1.In3StatusLabel = self.lblSt1Smpl3State
 
-    def initTimers(self):
-        self._ioPollTimer = QTimer(self)
-        self._ioPollTimer.setSingleShot(False)
-        self._ioPollTimer.timeout.connect(self.ioTimerTimout)        
-        self._ioPollTimer.start(20)
+        self.st2.In1StatusLabel = self.lblSt2Smpl1State
+        self.st2.In2StatusLabel = self.lblSt2Smpl2State
+        self.st2.In3StatusLabel = self.lblSt2Smpl3State
 
-        self._cycleTimer = QTimer(self)
-        self._cycleTimer.setSingleShot(True)
-        self._cycleTimer.timeout.connect(self.cycleTimerTimeout)
+        self.st3.In1StatusLabel = self.lblSt3Smpl1State
+        self.st3.In2StatusLabel = self.lblSt3Smpl2State
+        self.st3.In3StatusLabel = self.lblSt3Smpl3State
+
+    def setStationsWriteMethods(self):
+        self.st1._writeLog = self.writeLog
+        self.st2._writeLog = self.writeLog
+        self.st3._writeLog = self.writeLog
+
+        self.st1._writeReport = self.writeReport
+        self.st2._writeReport = self.writeReport
+        self.st3._writeReport = self.writeReport
+
+        self.st1.endOfTestCallback = self.stationEndOfTestCallback
+        self.st2.endOfTestCallback = self.stationEndOfTestCallback
+        self.st3.endOfTestCallback = self.stationEndOfTestCallback
+
+    def setStationsIos(self):
+        self.st1._inputs.sample1 = "P8_7"
+        self.st1._inputs.sample2 = "P8_8"
+        self.st1._inputs.sample3 = "P8_10"
+        self.st1._outputs.runOut = "P9_15"
+        self.st1._outputs.dirOut = "P9_12"
+
+        self.st2._inputs.sample1 = "P8_9"
+        self.st2._inputs.sample2 = "P8_12"
+        self.st2._inputs.sample3 = "P8_11"
+        self.st2._outputs.runOut = "P9_27"
+        self.st2._outputs.dirOut = "P9_30"
+
+        self.st3._inputs.sample1 = "P8_14"
+        self.st3._inputs.sample2 = "P8_16"
+        self.st3._inputs.sample3 = "P8_15"
+        self.st3._outputs.runOut = "P9_23"
+        self.st3._outputs.dirOut = "P9_25"
 
     def initControlsCallbacks(self):
-        self.tBtnFileSelect.clicked.connect(lambda: self.tBtnFileSelect_Clicked())
-        self.btStart.clicked.connect(lambda: self.pBtnRun_Clicked())
-        self.btnStop.clicked.connect(lambda: self.pBtnStop_Clicked())
+        self.btPathSelect.clicked.connect(lambda: self.btPathSelect_Clicked())
 
-        self.pBtnStation1.clicked.connect(lambda: self.btnStation1Clicked())
-        self.pBtnStation2.clicked.connect(lambda: self.btnStation2Clicked())
-        self.pBtnStation3.clicked.connect(lambda: self.btnStation3Clicked())
+        self.btStart_St1.clicked.connect(lambda: self.btStart_Clicked())
+        self.btStart_St2.clicked.connect(lambda: self.btStart_Clicked())
+        self.btStart_St3.clicked.connect(lambda: self.btStart_Clicked())
 
-        self.pBtnFill.clicked.connect(lambda: self.pBtnFillClicked())
-        self.pBtnInFluid.clicked.connect(lambda: self.pBtnInFluidClicked())
-        self.pBtnDischarge.clicked.connect(lambda: self.pBtnDischargedClicked())
-        self.pBtnInAir.clicked.connect(lambda: self.pBtnInAirClicked())
-        self.pBtnCycleCounter.clicked.connect(lambda: self.pBtnCycleCounterClicked())
-        self.btnEnd.clicked.connect(lambda: self.btnEndClicked())
+        self.btStop_St1.clicked.connect(lambda: self.btStop_Clicked())
+        self.btStop_St2.clicked.connect(lambda: self.btStop_Clicked())
+        self.btStop_St3.clicked.connect(lambda: self.btStop_Clicked())
+
+        self.btFill_St1.pressed.connect(lambda:self.btFill_Pressed())
+        self.btFill_St2.pressed.connect(lambda:self.btFill_Pressed())
+        self.btFill_St3.pressed.connect(lambda:self.btFill_Pressed())
+
+        self.btFill_St1.released.connect(lambda:self.btFill_Released())
+        self.btFill_St2.released.connect(lambda:self.btFill_Released())
+        self.btFill_St3.released.connect(lambda:self.btFill_Released())
+
+        self.btDischarge_St1.pressed.connect(lambda:self.btDischarge_Pressed())
+        self.btDischarge_St2.pressed.connect(lambda:self.btDischarge_Pressed())
+        self.btDischarge_St3.pressed.connect(lambda:self.btDischarge_Pressed())
+
+        self.btDischarge_St1.released.connect(lambda:self.btDischarge_Released())
+        self.btDischarge_St2.released.connect(lambda:self.btDischarge_Released())
+        self.btDischarge_St3.released.connect(lambda:self.btDischarge_Released())
+        
         self.pBtnClearLog.clicked.connect(lambda: self.pBtnClearLogClicked())
 
-    @property
-    def State(self):
-        return self._currentState
+    def setStationsTimersCallbacks(self):
+        self.st1._ioTimer.timeout.connect(self.st1_ioTimerCallback)
+        self.st1._ioTimer.start(20)
+        time.sleep(0.005)
 
-    @State.setter
-    def State(self, newVal):
-          self._currentState = newVal
-          self.lblActualState.setText("Stan próbki: {}".format(self._currentState[1]))
+        self.st2._ioTimer.timeout.connect(self.st2_ioTimerCallback)
+        self.st2._ioTimer.start(20)
+        time.sleep(0.005)
 
-    @property
-    def Cycle(self):
-        return self._cyclesRemainig
-    
-    @Cycle.setter
-    def Cycle(self, newVal):
-        self._cyclesRemainig = newVal
-        currentCycle = int(self.sBoxCycleCounter.value()) - self._cyclesRemainig
-        self.lblActualCycle.setText("Aktualny cykl: {}".format(currentCycle))
+        self.st3._ioTimer.timeout.connect(self.st3_ioTimerCallback)
+        self.st3._ioTimer.start(20)
 
-    @property
-    def Progress(self):
-        return self._progressValue
-
-    @Progress.setter
-    def Progress(self, newVal):
-        self._progressValue = newVal
-        self.pBarStateProgress.setValue(self._progressValue)
-
-    def pumpControl(self, pumpState):        
-        if ("St1" in self._StationsInUse):
-            ControlerIos.setPump(1, pumpState)
-        if ("St2" in self._StationsInUse):
-            ControlerIos.setPump(2, pumpState)
-        if ("St3" in self._StationsInUse):
-            ControlerIos.setPump(3, pumpState)
-
-    def processStateUnknown(self):
-        self._cycleTimer.start(1000)
-        self.State = TestState.FILL
-        self.Cycle = int(self.sBoxCycleCounter.value())
-        self.Cycle -= 1
-        self.pumpControl(PumpState.FILL)
-
-    def processStateFill(self):        
-        self._cycleTimer.start(1000)
-        if (self._fillTimeRemaining > 0 ):
-            self._fillTimeRemaining -= 1 
-            self._inFluidTimeRemaing -= 1
-            self.Progress = self.getProgressPercent(int(self.sBoxFillTime.value()), self._fillTimeRemaining)            
-        else:
-            self.pumpControl(PumpState.STOP)
-            self._inFluidTimeRemaing -= 1
-            self.State = TestState.IN_FLUID
-            self.Progress = self.getProgressPercent(60 * int(self.sBoxInFluidTime.value()), self._inFluidTimeRemaing)
-
-    def processStateInFluid(self):
-        self._cycleTimer.start(1000)
-        if (self._inFluidTimeRemaing > 0):
-            self._inFluidTimeRemaing -= 1
-            self.Progress = self.getProgressPercent(60 * int(self.sBoxInFluidTime.value()), self._inFluidTimeRemaing)
-        else:
-            self.pumpControl(PumpState.DISCHARGE)
-            self.State = TestState.DISCHARGE
-
-    def processStateDischarge(self):
-        self._cycleTimer.start(1000)
-        if (self._dischargeTimeRemaining > 0):
-            self._dischargeTimeRemaining -= 1
-            self._inAirTimeRemaining -= 1
-            self.Progress = self.getProgressPercent(int(self.sBoxDischargeTime.value()), self._dischargeTimeRemaining)
-        else:
-            self.pumpControl(PumpState.STOP)
-            self._inAirTimeRemaining -= 1
-            self.State = TestState.IN_AIR
-            self.Progress = self.getProgressPercent(60 * int(self.sBoxInAirTime.value()), self._inAirTimeRemaining)        
-    
-    def processStateInAir(self):
-        if (self._inAirTimeRemaining > 0):
-            self._cycleTimer.start(1000)
-            self._inAirTimeRemaining -= 1
-            self.Progress = self.getProgressPercent(60 * int(self.sBoxInAirTime.value()), self._inAirTimeRemaining)            
-        else:
-            ### End of test cycle
-            if (self._cyclesRemainig > 0):
-                ### Stil some test to do
-                self.Cycle -= 1
-                self._cycleTimer.start(1000)
-                self.pumpControl(PumpState.FILL)
-                self.State = TestState.FILL
-                self.Progress = 0
-                ### Start the cycle from the begining
-                self._fillTimeRemaining = int(self.sBoxFillTime.value())
-                self._inFluidTimeRemaing = 60 * int(self.sBoxInFluidTime.value())
-                self._dischargeTimeRemaining = int(self.sBoxDischargeTime.value())
-                self._inAirTimeRemaining = 60 * int(self.sBoxInAirTime.value())
-            else:
-                ### End of test
-                self.lblActualCycle.setText("Aktualny cykl:")
-                self.pBarStateProgress.setValue(0)
-                ### TODO: write report
-
+        self.st1._cycleTimer.timeout.connect(self.st1_cycleTimerCallback)
+        time.sleep(0.2)
+        self.st2._cycleTimer.timeout.connect(self.st2_cycleTimerCallback)
+        time.sleep(0.2)
+        self.st3._cycleTimer.timeout.connect(self.st3_cycleTimerCallback)
+ 
     def writeLog(self, lvl, msg):
         cursor = self.logView.textCursor()
 
-        alertHtml = "<font color=\"DeepPink\">"
-        notifyHtml = "<font color=\"Lime\">"
-        infoHtml = "<font color=\"Aqua\">"
+        alertHtml = "<font color=\"DarkRed \">"
+        notifyHtml = "<font color=\"DarkGreen \">"
+        infoHtml = "<font color=\"Black\">"
         endHtml = "</font><br>"
         line = ""
         timeStr = datetime.datetime.now().strftime("[%y.%m.%d - %H:%M:%S] ")
@@ -326,16 +150,53 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
         cursor.movePosition(11) # 11 = QTextCursor::END
         self.logView.setTextCursor(cursor)
 
-    def writeReport(self, msg):
-        with open(self._reportFileName, "a") as repF:
+    def writeReport(self, station, msg):
+        fName = ""
+        if station == 1:
+            fName = self.st1ReportName
+        elif station == 2:
+            fName = self.st2ReportName
+        elif station == 3:
+            fName = self.st3ReportName
+
+        with open(fName, "a") as repF:
             l = datetime.datetime.now().strftime("[%y.%m.%d - %H:%M:%S] ") + msg + "\n"
             repF.write(l)
 
+    def stationEndOfTestCallback(self, stationId):
+        if stationId == "1":
+            self.btStart_St1.setDisabled(False)
+            self.btStop_St1.setDisabled(True)
+            self.lblSt1RunState.setStyleSheet(self.StatuslblStyleSheet("RED"))
+        elif stationId == "2":
+            self.btStart_St2.setDisabled(False)
+            self.btStop_St2.setDisabled(True)
+            self.lblSt2RunState.setStyleSheet(self.StatuslblStyleSheet("RED"))
+        elif stationId == "3":
+            self.btStart_St3.setDisabled(False)
+            self.btStop_St3.setDisabled(True)
+            self.lblSt3RunState.setStyleSheet(self.StatuslblStyleSheet("RED"))
+        else:
+            raise ValueError
+
+    def StatuslblStyleSheet(self, color):
+        if color == "RED":
+            return ("border: 1px;\n" 
+                    "border-radius: 15px;\n"
+                    "background-color: rgb(255, 0, 0);")
+        elif color == "GREEN":
+            return ("border: 1px;\n" 
+                    "border-radius: 15px;\n"
+                    "background-color: rgb(0, 255, 0);")
+        else:
+            raise AttributeError
+    
     @pyqtSlot()
-    def tBtnFileSelect_Clicked(self):
+    def btPathSelect_Clicked(self):
         dialog = QtWidgets.QFileDialog(self)
         dialog.setFileMode(QtWidgets.QFileDialog.Directory)
         dialog.setOption(QtWidgets.QFileDialog.ShowDirsOnly, True)
+        dialog.setOption(QtWidgets.QFileDialog.DontUseNativeDialog, True)
         dialog.setDirectory("/home/piotr/pendrive/")
 
         if dialog.exec_():
@@ -344,263 +205,155 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.lEditFileName.setText(d[0])
 
     @pyqtSlot()
-    def pBtnRun_Clicked(self):
-        self.btnStop.setDisabled(False)
-        self.btStart.setDisabled(True)
-        if self.gbStation1.isChecked(): self._StationsInUse.append("St1")
-        if self.gbStation2.isChecked(): self._StationsInUse.append("St2")
-        if self.gbStation3.isChecked(): self._StationsInUse.append("St3")
-        self.gbStation1.setDisabled(True)
-        self.gbStation2.setDisabled(True)
-        self.gbStation3.setDisabled(True)
-        self._cyclesRemainig = int(self.sBoxCycleCounter.value())
-        self._fillTimeRemaining = int(self.sBoxFillTime.value())
-        self._inFluidTimeRemaing = 60 * int(self.sBoxInFluidTime.value())
-        self._dischargeTimeRemaining = int(self.sBoxDischargeTime.value())
-        self._inAirTimeRemaining = 60 * int(self.sBoxInAirTime.value())
-        fPath = self.lEditFileName.text()
-        if fPath == "":
-            self.tBtnFileSelect_Clicked()
-            fPath = self.lEditFileName.text()
-        self._reportFileName = fPath + datetime.datetime.now().strftime("/%y_%m_%d_%H_%M.txt")
-        self.writeReport("ROZPOCZETO TEST\n"
-                         "ILOSC CYKLI = {}\n"
-                         "CZAS NALEWANIA = {} s\n"
-                         "CZAS W CIECZY = {} m\n"
-                         "CZAS WYLEWANIA = {} s\n"
-                         "CZAS W POWIETRZU = {} m\n".format(self._cyclesRemainig,
-                                                            self._fillTimeRemaining,
-                                                            self._inFluidTimeRemaing,
-                                                            self._dischargeTimeRemaining,
-                                                            self._inAirTimeRemaining))
-        self._cycleTimer.start(0) # Kick the timer and let him take control
+    def btStart_Clicked(self):
+        btn = QObject.sender(self)
+        if btn:
+            if self.lEditFileName.text() == "":
+                self.btPathSelect_Clicked()
+            btn.setDisabled(True)
+            btnName = btn.objectName()
+            st = None
+            if btnName == "btStart_St1":
+                self.btStop_St1.setDisabled(False)
+                self.btDischarge_St1.setDisabled(True)
+                self.btFill_St1.setDisabled(True)
+                self.lblSt1RunState.setStyleSheet(self.StatuslblStyleSheet("GREEN"))
+                self.st1ReportName = self.lEditFileName.text() + \
+                                     datetime.datetime.now().strftime("/ST1_%y_%m_%d_%H_%M.txt")
+                st = self.st1
+            elif btnName == "btStart_St2":
+                self.btStop_St2.setDisabled(False)
+                self.btDischarge_St2.setDisabled(True)
+                self.btFill_St2.setDisabled(True)
+                self.st2ReportName = self.lEditFileName.text() + \
+                                     datetime.datetime.now().strftime("/ST2_%y_%m_%d_%H_%M.txt")
+                self.lblSt2RunState.setStyleSheet(self.StatuslblStyleSheet("GREEN"))
+                st = self.st2
+            elif btnName == "btStart_St3":
+                self.btStop_St3.setDisabled(False)
+                self.btDischarge_St3.setDisabled(True)
+                self.btFill_St3.setDisabled(True)
+                self.st3ReportName = self.lEditFileName.text() + \
+                                     datetime.datetime.now().strftime("/ST3_%y_%m_%d_%H_%M.txt")
+                self.lblSt3RunState.setStyleSheet(self.StatuslblStyleSheet("GREEN"))
+                st = self.st3
+            
+            st.setTestParams(int(self.sBoxCycleCounter.value()),
+                             int(self.sBoxFillTime.value()),
+                             60 * int(self.sBoxInFluidTime.value()),
+                             int(self.sBoxDischargeTime.value()),
+                             60 * int(self.sBoxInAirTime.value()) )
+            st.start()                
 
     @pyqtSlot()
-    def pBtnStop_Clicked(self):
-        ControlerIos.setPump(1, PumpState.STOP)
-        ControlerIos.setPump(2, PumpState.STOP)
-        ControlerIos.setPump(3, PumpState.STOP)
-        self.btnStop.setDisabled(True)
-        self.btStart.setDisabled(False)
-        self.gbStation1.setEnabled(True)
-        self.gbStation2.setEnabled(True)
-        self.gbStation3.setEnabled(True)
-        self._cycleTimer.stop()
-        self._currentState = TestState.UNKNOWN
+    def btStop_Clicked(self):
+        btn = QObject.sender(self)
+        if btn:
+            btn.setDisabled(True)
+            btnName = btn.objectName()
+            st = None
+            if btnName == "btStop_St1":
+                self.btStart_St1.setDisabled(False)
+                self.btDischarge_St1.setDisabled(False)
+                self.btFill_St1.setDisabled(False)
+                self.lblSt1RunState.setStyleSheet(self.StatuslblStyleSheet("RED"))
+                st = self.st1
+            elif btnName == "btStop_St2":
+                self.btStart_St2.setDisabled(False)
+                self.btDischarge_St2.setDisabled(False)
+                self.btFill_St2.setDisabled(False)
+                self.lblSt2RunState.setStyleSheet(self.StatuslblStyleSheet("RED"))
+                st = self.st2
+            elif btnName == "btStop_St3":
+                self.btStart_St3.setDisabled(False)
+                self.btDischarge_St3.setDisabled(False)
+                self.btFill_St3.setDisabled(False)
+                self.lblSt3RunState.setStyleSheet(self.StatuslblStyleSheet("RED"))
+                st = self.st3
+
+            st.stop()
+
+    @pyqtSlot()
+    def btFill_Pressed(self):
+        btn = QObject.sender(self)
+        if btn:
+            btnName = btn.objectName()
+            st = None
+            if btnName == "btFill_St1":   st = self.st1
+            elif btnName == "btFill_St2": st = self.st2
+            elif btnName == "btFill_St3": st = self.st3
+
+            st.setPump(pS.FILL)
+
+    @pyqtSlot()
+    def btFill_Released(self):
+        btn = QObject.sender(self)
+        if btn:
+            btnName = btn.objectName()
+            st = None
+            if btnName == "btFill_St1":   st = self.st1
+            elif btnName == "btFill_St2": st = self.st2
+            elif btnName == "btFill_St3": st = self.st3
+
+            st.setPump(pS.STOP)
+
+    @pyqtSlot()
+    def btDischarge_Pressed(self):
+        btn = QObject.sender(self)
+        if btn:
+            btnName = btn.objectName()
+            st = None
+            if btnName == "btDischarge_St1":   st = self.st1
+            elif btnName == "btDischarge_St2": st = self.st2
+            elif btnName == "btDischarge_St3": st = self.st3
+
+            st.setPump(pS.DISCHARGE)
+
+    @pyqtSlot()
+    def btDischarge_Released(self):
+        btn = QObject.sender(self)
+        if btn:
+            btnName = btn.objectName()
+            st = None
+            if btnName == "btDischarge_St1":   st = self.st1
+            elif btnName == "btDischarge_St2": st = self.st2
+            elif btnName == "btDischarge_St3": st = self.st3
+
+            st.setPump(pS.STOP)
 
     @pyqtSlot()
     def pBtnClearLogClicked(self):
         self.logView.clear()
+    
+    ### Stations timers slots
+    @pyqtSlot()
+    def st1_ioTimerCallback(self):
+        self.st1.ioTimerCallback()
 
     @pyqtSlot()
-    def closeEvent(self, evnt):
-        pass
+    def st1_cycleTimerCallback(self):
+        self.st1.cycleTimerCallback()
 
     @pyqtSlot()
-    def ioTimerTimout(self):
-        if self.gbStation1.isChecked():
-            In1 = ControlerIos.sampleState(1,1)
-            In2 = ControlerIos.sampleState(1,2)
-            In3 = ControlerIos.sampleState(1,3)
-
-            if In1 == ControlerIos.STATE_OK:
-                self.lblSt1Smpl1State.setStyleSheet(self.lblStyleSheet("GREEN"))
-                if ControlerIos.st1Smpl1 in self._demagedSamples:
-                    self._demagedSamples.remove(ControlerIos.st1Smpl1)
-            else:
-                if ControlerIos.st1Smpl1 not in self._demagedSamples:
-                    self._demagedSamples.append(ControlerIos.st1Smpl1)
-                    self.writeLog("Alert", "St.1 Probka 1 zerwana")
-                self.lblSt1Smpl1State.setStyleSheet(self.lblStyleSheet("RED"))
-
-            if In2 == ControlerIos.STATE_OK:
-                self.lblSt1Smpl2State.setStyleSheet(self.lblStyleSheet("GREEN"))
-                if ControlerIos.st1Smpl2 in self._demagedSamples:
-                    self._demagedSamples.remove(ControlerIos.st1Smpl2)
-            else:
-                if ControlerIos.st1Smpl2 not in self._demagedSamples:
-                    self._demagedSamples.append(ControlerIos.st1Smpl2)
-                    self.writeLog("Alert", "St.1 Probka 2 zerwana")
-                self.lblSt1Smpl2State.setStyleSheet(self.lblStyleSheet("RED"))
-
-            if In3 == ControlerIos.STATE_OK:
-                self.lblSt1Smpl3State.setStyleSheet(self.lblStyleSheet("GREEN"))
-                if ControlerIos.st1Smpl3 in self._demagedSamples:
-                    self._demagedSamples.remove(ControlerIos.st1Smpl3)
-            else:
-                if ControlerIos.st1Smpl3 not in self._demagedSamples:
-                    self._demagedSamples.append(ControlerIos.st1Smpl3)
-                    self.writeLog("Alert", "St.1 Probka 3 zerwana")
-                self.lblSt1Smpl3State.setStyleSheet(self.lblStyleSheet("RED"))
-
-            if (In1 == ControlerIos.STATE_NOK and
-                In2 == ControlerIos.STATE_NOK and
-                In3 == ControlerIos.STATE_NOK):
-                ### SET station to DISCHARGE and leave it in IN_AIR
-                pass
-        
-        if self.gbStation2.isChecked():
-            In1 = ControlerIos.sampleState(2,1)
-            In2 = ControlerIos.sampleState(2,2)
-            In3 = ControlerIos.sampleState(2,3)
-
-            if In1 == ControlerIos.STATE_OK:
-                if ControlerIos.st2Smpl1 in self._demagedSamples:
-                    self._demagedSamples.remove(ControlerIos.st2Smpl1)
-                self.lblSt2Smpl1State.setStyleSheet(self.lblStyleSheet("GREEN"))
-            else:
-                if ControlerIos.st2Smpl1 not in self._demagedSamples:
-                    self._demagedSamples.append(ControlerIos.st2Smpl1)
-                    self.writeLog("Alert", "St.2 Probka 1 zerwana")
-                self.lblSt2Smpl1State.setStyleSheet(self.lblStyleSheet("RED"))
-
-            if In2 == ControlerIos.STATE_OK:
-                if ControlerIos.st2Smpl2 in self._demagedSamples:
-                    self._demagedSamples.remove(ControlerIos.st2Smpl2)
-                self.lblSt2Smpl2State.setStyleSheet(self.lblStyleSheet("GREEN"))
-            else:
-                if ControlerIos.st2Smpl2 not in self._demagedSamples:
-                    self._demagedSamples.append(ControlerIos.st2Smpl2)
-                    self.writeLog("Alert", "St.2 Probka 2 zerwana")
-                self.lblSt2Smpl2State.setStyleSheet(self.lblStyleSheet("RED"))
-
-            if In3 == ControlerIos.STATE_OK:
-                if ControlerIos.st2Smpl3 in self._demagedSamples:
-                    self._demagedSamples.remove(ControlerIos.st2Smpl3)
-                self.lblSt2Smpl3State.setStyleSheet(self.lblStyleSheet("GREEN"))
-            else:
-                if ControlerIos.st2Smpl3 not in self._demagedSamples:
-                    self._demagedSamples.append(ControlerIos.st2Smpl3)
-                    self.writeLog("Alert", "St.2 Probka 3 zerwana")
-                self.lblSt2Smpl3State.setStyleSheet(self.lblStyleSheet("RED"))
-
-            if (In1 == ControlerIos.STATE_NOK and
-                In2 == ControlerIos.STATE_NOK and
-                In3 == ControlerIos.STATE_NOK):
-                ### SET station to DISCHARGE and leave it in IN_AIR
-                pass    
-
-        if self.gbStation3.isChecked():
-            In1 = ControlerIos.sampleState(3,1)
-            In2 = ControlerIos.sampleState(3,2)
-            In3 = ControlerIos.sampleState(3,3)
-
-            if In1 == ControlerIos.STATE_OK:
-                if ControlerIos.st3Smpl1 in self._demagedSamples:
-                    self._demagedSamples.remove(ControlerIos.st3Smpl1)
-                self.lblSt3Smpl1State.setStyleSheet(self.lblStyleSheet("GREEN"))
-            else:
-                if ControlerIos.st3Smpl1 not in self._demagedSamples:
-                    self._demagedSamples.append(ControlerIos.st3Smpl1)
-                    self.writeLog("Alert", "St.3 Probka 1 zerwana")
-                self.lblSt3Smpl1State.setStyleSheet(self.lblStyleSheet("RED"))
-
-            if In2 == ControlerIos.STATE_OK:
-                if ControlerIos.st3Smpl2 in self._demagedSamples:
-                    self._demagedSamples.remove(ControlerIos.st3Smpl2)
-                self.lblSt3Smpl2State.setStyleSheet(self.lblStyleSheet("GREEN"))
-            else:
-                if ControlerIos.st3Smpl2 not in self._demagedSamples:
-                    self._demagedSamples.append(ControlerIos.st3Smpl2)
-                    self.writeLog("Alert", "St.3 Probka 2 zerwana")
-                self.lblSt3Smpl2State.setStyleSheet(self.lblStyleSheet("RED"))
-
-            if In3 == ControlerIos.STATE_OK:
-                if ControlerIos.st3Smpl3 in self._demagedSamples:
-                    self._demagedSamples.remove(ControlerIos.st3Smpl3)
-                self.lblSt3Smpl3State.setStyleSheet(self.lblStyleSheet("GREEN"))
-            else:
-                if ControlerIos.st3Smpl3 not in self._demagedSamples:
-                    self._demagedSamples.append(ControlerIos.st3Smpl3)
-                    self.writeLog("Alert", "St.3 Probka 3 zerwana")
-                self.lblSt3Smpl3State.setStyleSheet(self.lblStyleSheet("RED"))
-
-            if (In1 == ControlerIos.STATE_NOK and
-                In2 == ControlerIos.STATE_NOK and
-                In3 == ControlerIos.STATE_NOK):
-                ### SET station to DISCHARGE and leave it in IN_AIR
-                pass
+    def st2_ioTimerCallback(self):
+        self.st2.ioTimerCallback()
 
     @pyqtSlot()
-    def cycleTimerTimeout(self):
-        if (self._currentState == TestState.UNKNOWN):
-            self.processStateUnknown()
-        elif (self._currentState == TestState.FILL):
-            self.processStateFill()
-        elif (self._currentState == TestState.IN_FLUID):
-            self.processStateInFluid()
-        elif (self._currentState == TestState.DISCHARGE):
-            self.processStateDischarge()
-        elif (self._currentState == TestState.IN_AIR):
-            self.processStateInAir()
+    def st2_cycleTimerCallback(self):
+        self.st2.cycleTimerCallback()
 
     @pyqtSlot()
-    def btnStation1Clicked(self):
-        if self._appState != AppState.RUNNING:
-            if self.gbStation1.isChecked():
-                self.gbStation1.setChecked(False)
-            else:
-                self.gbStation1.setChecked(True)
+    def st3_ioTimerCallback(self):
+        self.st3.ioTimerCallback()
 
     @pyqtSlot()
-    def btnStation2Clicked(self):
-        if self._appState != AppState.RUNNING:
-            if self.gbStation2.isChecked():
-                self.gbStation2.setChecked(False)
-            else:
-                self.gbStation2.setChecked(True)
+    def st3_cycleTimerCallback(self):
+        self.st3.cycleTimerCallback()
 
-    @pyqtSlot()
-    def btnStation3Clicked(self):
-        if self._appState != AppState.RUNNING:
-            if self.gbStation3.isChecked():
-                self.gbStation3.setChecked(False)
-            else:
-                self.gbStation3.setChecked(True)
-
-    @pyqtSlot()
-    def pBtnFillClicked(self):
-        self.sBoxFillTime.setFocus()
-
-    @pyqtSlot()
-    def pBtnInFluidClicked(self):
-        self.sBoxInFluidTime.setFocus()
-
-    @pyqtSlot()
-    def pBtnDischargedClicked(self):
-        self.sBoxDischargeTime.setFocus()
-
-    @pyqtSlot()
-    def pBtnInAirClicked(self):
-        self.sBoxInAirTime.setFocus()
-
-    @pyqtSlot()
-    def pBtnCycleCounterClicked(self):
-        self.sBoxCycleCounter.setFocus()
-
-    @pyqtSlot()
-    def btnEndClicked(self):
-        self.close()
-
-    def getProgressPercent(self, total, current):
-        return int( (float(total) - float(current)) / float(total) * 100.0)
-
-    def lblStyleSheet(self, color):
-        if color == "RED":
-            return ("border: 1px;\n" 
-                    "border-radius: 10px;\n"
-                    "background-color: rgb(255, 0, 0);")
-        elif color == "GREEN":
-            return ("border: 1px;\n" 
-                    "border-radius: 10px;\n"
-                    "background-color: rgb(0, 255, 0);")
-        else:
-            raise AttributeError
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = Main()
-    ##app.setStyle(QtGui.QStyleFactory.create("Windows"))
     window.show()
     sys.exit(app.exec_())
     GPIO.cleanup()
