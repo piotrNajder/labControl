@@ -1,4 +1,5 @@
 import datetime
+from PyQt5 import QtCore
 from PyQt5.QtCore import QTimer
 from enum import Enum
 import Adafruit_BBIO.GPIO as GPIO
@@ -70,9 +71,11 @@ class stationControler():
 
         self._ioTimer = QTimer(self._parent)
         self._ioTimer.setSingleShot(False)
+        self._ioTimer.setTimerType(QtCore.Qt.PreciseTimer)
 
         self._cycleTimer = QTimer(self._parent)
         self._cycleTimer.setSingleShot(True)
+        self._cycleTimer.setTimerType(QtCore.Qt.PreciseTimer)
 
         ########## End of init ##################
 
@@ -84,6 +87,7 @@ class stationControler():
     def State(self, newVal):
           self.state = newVal
           self.PhaseLabel.setText("Faza: {}".format(self.state[1]))
+          self._writeLog("Info", "St.{} - Poczatek fazy {}".format(self._stationId, self.state[1]))
 
     @property
     def Cycle(self):
@@ -94,6 +98,7 @@ class stationControler():
         self._cyclesRemainig = newVal
         currentCycle = self._cycleToDo - self._cyclesRemainig
         self.StateLabel.setText("Cykl: {}".format(currentCycle))
+        self._writeLog("Info", "St.{} - Poczatek cyklu {}".format(self._stationId, currentCycle))
 
     @property
     def Progress(self):
@@ -134,6 +139,7 @@ class stationControler():
     def stop(self):
         self.setPump(PumpState.STOP)
         self._cycleTimer.stop()
+        self._writeLog("Notify", "St.{} Zakonczono cykl testowy.".format(self._stationId))
         self._state = TestState.UNKNOWN
 
     def setTestParams(self, cyc, f, iF, dis, iA):
@@ -214,7 +220,8 @@ class stationControler():
                 self.PhaseLabel.setText("Faza:")
                 self.ProgressBar.setValue(0)
                 self.endOfTestCallback(str(self._stationId))
-                ### TODO: write report
+                self._writeLog("Notify", "St.{} KONIEC TESTU.".format(self._stationId))
+                self._writeReport(self._stationId, "KONIEC TESTU")
 
     ### Callback method for IO polling timer
     def ioTimerCallback(self):
@@ -228,6 +235,7 @@ class stationControler():
                 self._demagedSamples.append(self._inputs.sample1)
                 self._writeLog("Alert", "St.{} Probka 1 zerwana".format(self._stationId))
             self.In1StatusLabel.setStyleSheet(self.lblStyleSheet("RED"))
+            self._writeReport(self._stationId, "Probka 1 zerwana")
 
         In2 = GPIO.input(self._inputs.sample2)
         if In2 == stationInputs.STATE_OK:
@@ -239,6 +247,7 @@ class stationControler():
                 self._demagedSamples.append(self._inputs.sample2)
                 self._writeLog("Alert", "St.{} Probka 2 zerwana".format(self._stationId))
             self.In2StatusLabel.setStyleSheet(self.lblStyleSheet("RED"))
+            self._writeReport(self._stationId, "Probka 2 zerwana")
 
         In3 = GPIO.input(self._inputs.sample3)
         if In3 == stationInputs.STATE_OK:
@@ -250,6 +259,7 @@ class stationControler():
                 self._demagedSamples.append(self._inputs.sample3)
                 self._writeLog("Alert", "St.{} Probka 3 zerwana".format(self._stationId))
             self.In3StatusLabel.setStyleSheet(self.lblStyleSheet("RED"))
+            self._writeReport(self._stationId, "Probka 3 zerwana")
 
         if (In1 == stationInputs.STATE_NOK and
             In2 == stationInputs.STATE_NOK and
