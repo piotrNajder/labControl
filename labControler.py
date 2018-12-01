@@ -5,7 +5,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot, QTimer, QObject
 from test_station_controler.stationControler import stationControler as stCtrl
 from test_station_controler.stationControler import PumpState as pS
-from stub_Adafruit_BBIO import GPIO
+from Adafruit_BBIO import GPIO
 import datetime
 import time
 
@@ -68,7 +68,9 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
         self.st1._inputs.sample2 = "P8_11"
         self.st1._inputs.sample3 = "P8_15"
         self.st1._outputs.runOut = "P9_23"
-        self.st1._outputs.dirOut = "P9_25"
+        self.st1._outputs.dirOut = "P9_41"
+
+        self.st1.initIos()
 
         self.st2._inputs.sample1 = "P8_14"
         self.st2._inputs.sample2 = "P8_16"
@@ -76,11 +78,15 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
         self.st2._outputs.runOut = "P9_12"
         self.st2._outputs.dirOut = "P9_15"
 
+        self.st2.initIos()
+
         self.st3._inputs.sample1 = "P8_8"
         self.st3._inputs.sample2 = "P8_10"
         self.st3._inputs.sample3 = "P8_12"
         self.st3._outputs.runOut = "P9_30"
         self.st3._outputs.dirOut = "P9_27"
+
+        self.st3.initIos()
 
     def initControlsCallbacks(self):
         self.btPathSelect.clicked.connect(lambda: self.btPathSelect_Clicked())

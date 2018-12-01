@@ -1,7 +1,7 @@
 import datetime
 from PyQt5.QtCore import QTimer
 from enum import Enum
-import stub_Adafruit_BBIO.GPIO as GPIO
+import Adafruit_BBIO.GPIO as GPIO
 
 class stationInputs():
 
@@ -68,8 +68,6 @@ class stationControler():
         self._writeReport = staticmethod(lambda: (""))
         self.endOfTestCallback = staticmethod(lambda: (""))
 
-        self.initIos()
-
         self._ioTimer = QTimer(self._parent)
         self._ioTimer.setSingleShot(False)
 
@@ -114,8 +112,8 @@ class stationControler():
         GPIO.setup(self._outputs.runOut, GPIO.OUT)
         GPIO.setup(self._outputs.dirOut, GPIO.OUT)       
 
-        GPIO.output(self._outputs.runOut, GPIO.LOW)
-        GPIO.output(self._outputs.dirOut, GPIO.LOW)
+        GPIO.output(self._outputs.runOut, GPIO.HIGH)
+        GPIO.output(self._outputs.dirOut, GPIO.HIGH)
 
     def start(self):
         self._writeReport(self._stationId,
@@ -276,14 +274,14 @@ class stationControler():
 
     def setPump(self, state):
         if state == PumpState.STOP:
-            GPIO.output(self._outputs.runOut, GPIO.LOW)
-            GPIO.output(self._outputs.dirOut, GPIO.LOW)
-        elif state == PumpState.FILL:
+            GPIO.output(self._outputs.runOut, GPIO.HIGH)
             GPIO.output(self._outputs.dirOut, GPIO.HIGH)
-            GPIO.output(self._outputs.runOut, GPIO.HIGH)
-        elif state == PumpState.DISCHARGE:
+        elif state == PumpState.FILL:
             GPIO.output(self._outputs.dirOut, GPIO.LOW)
-            GPIO.output(self._outputs.runOut, GPIO.HIGH)
+            GPIO.output(self._outputs.runOut, GPIO.LOW)
+        elif state == PumpState.DISCHARGE:
+            GPIO.output(self._outputs.dirOut, GPIO.HIGH)
+            GPIO.output(self._outputs.runOut, GPIO.LOW)
         else:
             raise ValueError()
 
