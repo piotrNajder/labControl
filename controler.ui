@@ -40,7 +40,7 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>345</width>
+      <width>335</width>
       <height>155</height>
      </rect>
     </property>
@@ -245,7 +245,7 @@ background-color: rgb(255, 0, 0);</string>
       </rect>
      </property>
      <property name="value">
-      <number>50</number>
+      <number>0</number>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -294,7 +294,7 @@ background-color: rgb(255, 0, 0);</string>
       </font>
      </property>
      <property name="text">
-      <string>Faza: W POWIETRZU</string>
+      <string>Faza:</string>
      </property>
     </widget>
     <widget class="QPushButton" name="btFill_St1">
@@ -386,7 +386,7 @@ p, li { white-space: pre-wrap; }
      <rect>
       <x>10</x>
       <y>175</y>
-      <width>345</width>
+      <width>335</width>
       <height>155</height>
      </rect>
     </property>
@@ -631,7 +631,7 @@ background-color: rgb(255, 0, 0);</string>
       </rect>
      </property>
      <property name="value">
-      <number>50</number>
+      <number>0</number>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -709,7 +709,7 @@ background-color: rgb(255, 0, 0);</string>
      <rect>
       <x>10</x>
       <y>340</y>
-      <width>345</width>
+      <width>335</width>
       <height>155</height>
      </rect>
     </property>
@@ -960,7 +960,7 @@ background-color: rgb(255, 0, 0);</string>
       </rect>
      </property>
      <property name="value">
-      <number>50</number>
+      <number>0</number>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -1036,10 +1036,10 @@ background-color: rgb(255, 0, 0);</string>
    <widget class="QGroupBox" name="gbParams">
     <property name="geometry">
      <rect>
-      <x>360</x>
+      <x>350</x>
       <y>10</y>
-      <width>231</width>
-      <height>251</height>
+      <width>240</width>
+      <height>321</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -1064,10 +1064,10 @@ QGroupBox::title {
     <widget class="QSpinBox" name="sBoxCycleCounter">
      <property name="geometry">
       <rect>
-       <x>135</x>
-       <y>145</y>
+       <x>150</x>
+       <y>190</y>
        <width>80</width>
-       <height>22</height>
+       <height>25</height>
       </rect>
      </property>
      <property name="alignment">
@@ -1086,10 +1086,10 @@ QGroupBox::title {
     <widget class="QSpinBox" name="sBoxInAirTime">
      <property name="geometry">
       <rect>
-       <x>135</x>
-       <y>115</y>
+       <x>150</x>
+       <y>150</y>
        <width>80</width>
-       <height>22</height>
+       <height>25</height>
       </rect>
      </property>
      <property name="alignment">
@@ -1111,16 +1111,16 @@ QGroupBox::title {
       <number>9999</number>
      </property>
      <property name="value">
-      <number>10</number>
+      <number>50</number>
      </property>
     </widget>
     <widget class="QSpinBox" name="sBoxFillTime">
      <property name="geometry">
       <rect>
-       <x>135</x>
-       <y>22</y>
+       <x>150</x>
+       <y>30</y>
        <width>80</width>
-       <height>22</height>
+       <height>25</height>
       </rect>
      </property>
      <property name="alignment">
@@ -1145,10 +1145,10 @@ QGroupBox::title {
     <widget class="QSpinBox" name="sBoxDischargeTime">
      <property name="geometry">
       <rect>
-       <x>135</x>
-       <y>85</y>
+       <x>150</x>
+       <y>110</y>
        <width>80</width>
-       <height>22</height>
+       <height>25</height>
       </rect>
      </property>
      <property name="alignment">
@@ -1176,10 +1176,10 @@ QGroupBox::title {
     <widget class="QSpinBox" name="sBoxInFluidTime">
      <property name="geometry">
       <rect>
-       <x>135</x>
-       <y>55</y>
+       <x>150</x>
+       <y>70</y>
        <width>80</width>
-       <height>22</height>
+       <height>25</height>
       </rect>
      </property>
      <property name="alignment">
@@ -1208,9 +1208,9 @@ QGroupBox::title {
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>22</y>
-       <width>120</width>
-       <height>22</height>
+       <y>30</y>
+       <width>130</width>
+       <height>25</height>
       </rect>
      </property>
      <property name="font">
@@ -1237,9 +1237,9 @@ QGroupBox::title {
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>55</y>
-       <width>120</width>
-       <height>22</height>
+       <y>70</y>
+       <width>130</width>
+       <height>25</height>
       </rect>
      </property>
      <property name="font">
@@ -1253,10 +1253,10 @@ QGroupBox::title {
       <string notr="true">Text-align: right</string>
      </property>
      <property name="text">
-      <string>W CIECZY</string>
+      <string>W C&amp;IECZY</string>
      </property>
      <property name="shortcut">
-      <string>Alt+C</string>
+      <string>Alt+F</string>
      </property>
      <property name="flat">
       <bool>true</bool>
@@ -1266,9 +1266,9 @@ QGroupBox::title {
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>85</y>
-       <width>120</width>
-       <height>22</height>
+       <y>110</y>
+       <width>130</width>
+       <height>25</height>
       </rect>
      </property>
      <property name="font">
@@ -1295,9 +1295,9 @@ QGroupBox::title {
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>115</y>
-       <width>120</width>
-       <height>22</height>
+       <y>150</y>
+       <width>130</width>
+       <height>25</height>
       </rect>
      </property>
      <property name="font">
@@ -1324,9 +1324,9 @@ QGroupBox::title {
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>145</y>
-       <width>120</width>
-       <height>22</height>
+       <y>190</y>
+       <width>130</width>
+       <height>25</height>
       </rect>
      </property>
      <property name="font">
@@ -1352,20 +1352,23 @@ QGroupBox::title {
     <widget class="QLineEdit" name="lEditFileName">
      <property name="geometry">
       <rect>
-       <x>5</x>
-       <y>210</y>
-       <width>221</width>
-       <height>29</height>
+       <x>10</x>
+       <y>280</y>
+       <width>220</width>
+       <height>30</height>
       </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
      </property>
     </widget>
     <widget class="QPushButton" name="btPathSelect">
      <property name="geometry">
       <rect>
        <x>195</x>
-       <y>180</y>
-       <width>29</width>
-       <height>29</height>
+       <y>245</y>
+       <width>30</width>
+       <height>30</height>
       </rect>
      </property>
      <property name="text">
@@ -1378,10 +1381,10 @@ QGroupBox::title {
     <widget class="QLabel" name="lblReportFileName">
      <property name="geometry">
       <rect>
-       <x>5</x>
-       <y>185</y>
-       <width>141</width>
-       <height>20</height>
+       <x>10</x>
+       <y>250</y>
+       <width>140</width>
+       <height>25</height>
       </rect>
      </property>
      <property name="text">
@@ -1405,8 +1408,168 @@ QGroupBox::title {
      <string>F4</string>
     </property>
    </widget>
+   <widget class="QGroupBox" name="gbTimeSettings">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>340</y>
+      <width>240</width>
+      <height>155</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QGroupBox {
+    border: 1px solid white;
+    border-radius: 9px;
+    margin-top: 0.5em;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 3px 0 3px;
+}</string>
+    </property>
+    <property name="title">
+     <string>Ustawienia czasu</string>
+    </property>
+    <property name="checkable">
+     <bool>false</bool>
+    </property>
+    <widget class="QPushButton" name="btnTimeSettings">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>210</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">Text-align: left</string>
+     </property>
+     <property name="text">
+      <string>Aktualny &amp;Czas:</string>
+     </property>
+     <property name="shortcut">
+      <string>Alt+C</string>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QDateTimeEdit" name="dateTimeEdit">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>220</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="correctionMode">
+      <enum>QAbstractSpinBox::CorrectToNearestValue</enum>
+     </property>
+     <property name="date">
+      <date>
+       <year>2018</year>
+       <month>12</month>
+       <day>2</day>
+      </date>
+     </property>
+     <property name="time">
+      <time>
+       <hour>7</hour>
+       <minute>0</minute>
+       <second>0</second>
+      </time>
+     </property>
+     <property name="maximumDate">
+      <date>
+       <year>3000</year>
+       <month>12</month>
+       <day>31</day>
+      </date>
+     </property>
+     <property name="minimumDate">
+      <date>
+       <year>2018</year>
+       <month>12</month>
+       <day>1</day>
+      </date>
+     </property>
+     <property name="displayFormat">
+      <string>yyyy-MM-dd HH:mm</string>
+     </property>
+     <property name="calendarPopup">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btSetTime">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>110</y>
+       <width>80</width>
+       <height>30</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string>&amp;ZAPISZ</string>
+     </property>
+     <property name="shortcut">
+      <string>Alt+Z</string>
+     </property>
+    </widget>
+   </widget>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>btStop_St1</tabstop>
+  <tabstop>btStart_St1</tabstop>
+  <tabstop>btStop_St2</tabstop>
+  <tabstop>btStart_St2</tabstop>
+  <tabstop>btStop_St3</tabstop>
+  <tabstop>btStart_St3</tabstop>
+  <tabstop>sBoxFillTime</tabstop>
+  <tabstop>sBoxInFluidTime</tabstop>
+  <tabstop>sBoxDischargeTime</tabstop>
+  <tabstop>sBoxInAirTime</tabstop>
+  <tabstop>sBoxCycleCounter</tabstop>
+  <tabstop>btPathSelect</tabstop>
+  <tabstop>dateTimeEdit</tabstop>
+  <tabstop>btSetTime</tabstop>
+  <tabstop>btFill_St1</tabstop>
+  <tabstop>btDischarge_St1</tabstop>
+  <tabstop>btFill_St2</tabstop>
+  <tabstop>btDischarge_St2</tabstop>
+  <tabstop>btFill_St3</tabstop>
+  <tabstop>btDischarge_St3</tabstop>
+  <tabstop>pBtnClearLog</tabstop>
+  <tabstop>lEditFileName</tabstop>
+  <tabstop>pBtnFill</tabstop>
+  <tabstop>pBtnInFluid</tabstop>
+  <tabstop>pBtnDischarge</tabstop>
+  <tabstop>pBtnInAir</tabstop>
+  <tabstop>pBtnCycleCounter</tabstop>
+  <tabstop>btnTimeSettings</tabstop>
+  <tabstop>logView</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

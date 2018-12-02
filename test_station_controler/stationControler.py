@@ -20,7 +20,7 @@ class stationOutputs():
         self.runOut = ""
 
 class TestState():
-    UNKNOWN =   (0, "UNKNOWN")
+    UNKNOWN =   (0, "")
     FILL =      (1, "NALEWANIE")
     IN_FLUID =  (2, "W CIECZY")
     DISCHARGE = (3, "WYLEWANIE")
@@ -219,6 +219,7 @@ class stationControler():
                 self.StateLabel.setText("Cykl:")
                 self.PhaseLabel.setText("Faza:")
                 self.ProgressBar.setValue(0)
+                self.State = TestState.UNKNOWN
                 self.endOfTestCallback(str(self._stationId))
                 self._writeLog("Notify", "St.{} KONIEC TESTU.".format(self._stationId))
                 self._writeReport(self._stationId, "KONIEC TESTU")
@@ -266,8 +267,10 @@ class stationControler():
             In3 == stationInputs.STATE_NOK and not
             self._allSamplesBroken):
             self._allSamplesBroken = True
-            self.State = TestState.DISCHARGE
-            self._cycleTimer.start(0)  ### Kick the timer
+            if (self.State != TestState.DISCHARGE and 
+                self.State != TestState.IN_AIR):
+                self.State = TestState.DISCHARGE
+                self._cycleTimer.start(0)  ### Kick the timer
 
     ### Callback method for cycle timer
     def cycleTimerCallback(self):

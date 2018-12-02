@@ -1,19 +1,24 @@
 import sys
+import subprocess
+import datetime
+import time
 from enum import Enum
+
 from controlerUI import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSlot, QTimer, QObject
+
 from test_station_controler.stationControler import stationControler as stCtrl
 from test_station_controler.stationControler import PumpState as pS
-from Adafruit_BBIO import GPIO
-import datetime
-import time
+import Adafruit_BBIO.GPIO as GPIO
+
 
 class Main(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def __init__(self):
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
+        self.dateTimeEdit.setDateTime(QtCore.QDateTime.currentDateTime())
         self.initControlsCallbacks()
 
         self.st1 = stCtrl(self, 1)
@@ -117,17 +122,20 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
         
         self.pBtnClearLog.clicked.connect(lambda: self.pBtnClearLogClicked())
 
+        self.btnTimeSettings.clicked.connect(lambda: self.btnTimeSettings_Clicked())
+        self.btSetTime.clicked.connect(lambda: self.btSetTime_Clicked())
+
     def setStationsTimersCallbacks(self):
         self.st1._ioTimer.timeout.connect(self.st1_ioTimerCallback)
-        self.st1._ioTimer.start(20)
-        time.sleep(0.005)
+        self.st1._ioTimer.start(100)
+        time.sleep(0.03)
 
         self.st2._ioTimer.timeout.connect(self.st2_ioTimerCallback)
-        self.st2._ioTimer.start(20)
-        time.sleep(0.005)
+        self.st2._ioTimer.start(100)
+        time.sleep(0.03)
 
         self.st3._ioTimer.timeout.connect(self.st3_ioTimerCallback)
-        self.st3._ioTimer.start(20)
+        self.st3._ioTimer.start(100)
 
         self.st1._cycleTimer.timeout.connect(self.st1_cycleTimerCallback)
         time.sleep(0.2)
@@ -326,6 +334,15 @@ class Main(QtWidgets.QMainWindow, Ui_MainWindow):
             elif btnName == "btDischarge_St3": st = self.st3
 
             st.setPump(pS.STOP)
+
+    @pyqtSlot()
+    def btnTimeSettings_Clicked(self):
+        pass
+
+    @pyqtSlot()
+    def btSetTime_Clicked(self):
+        dateStr = self.dateTimeEdit.dateTime().toString("yyyy/MM/dd HH:mm:ss")
+        subprocess.call(["sudo", "date", "-s", "{:}".format(dateStr)], shell = True)
 
     @pyqtSlot()
     def pBtnClearLogClicked(self):
